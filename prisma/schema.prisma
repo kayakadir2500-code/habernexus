@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. KULLANICI & AUTH
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  interests     String[]        @default([]) // Örn: ["TEKNOLOJI", "EKONOMI"]
+  readCount     Int             @default(0)
+  optInAds      Boolean         @default(false) // Kullanıcının isteğe bağlı reklam tercihi
+  isSupporter   Boolean         @default(false) // Destekçi rozeti
+  favorites     FavoriteNews[]
+  readingLogs   ReadingHistory[]
+  comments      Comment[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+// 2. PERSONA (YAPAY ZEKA YAZARLAR)
+model Persona {
+  id          String   @id @default(cuid())
+  name        String   // Örn: "Caner Demir"
+  slug        String   @unique
+  role        String   // Örn: "Kıdemli Teknoloji Editörü"
+  bio         String   @db.Text
+  avatarUrl   String
+  categories  String[] // İlgilendiği kategoriler ["TEKNOLOJI", "BILIM"]
+  tone        String   @default("Profesyonel, akıcı ve analitik")
+  createdAt   DateTime @default(now())
+  articles    News[]
+}
+
+// 3. HABER MODELİ (KUSURSUZ SEO VE METADATA İLE)
+model News {
+  id              String          @id @default(cuid())
+  title           String          // Merak uyandıran, profesyonel başlık
+  slug            String          @unique
+  summary         String          @db.Text // 5N1K Özeti / Spot metni
+  content         String          @db.Text // Genişletilmiş detaylı haber gövdesi
+  category        String          // GUNDEM, TEKNOLOJI, EKONOMI, DUNYA, SPOR, OTOMOTIV, BILIM, SAGLIK
+  tags            String[]
+  
+  // Görsel & Ses
+  imageUrl        String          // Vercel Blob / Storage 16:9 WebP URL
+  imageAlt        String          // SEO Alt Açıklaması
+  imageCaption    String?         // Fotoğraf altı bilgisi
+  audioUrl        String?         // Doğal Yapay Zeka Spikeri MP3 URL
+  
+  // SEO & Doğrulama
+  metaTitle       String
+  metaDescription String          @db.Text
+  readingTime     Int             @default(3) // Dakika
+  faqData         Json?           // Google FAQPage Schema için 3 soru-cevap [{"question": "...", "answer": "..."}]
+  sources         String[]        // Doğrulanan canlı kaynak linkleri
+  
+  // İlişkiler & Metrikler
+  personaId       String
+  persona         Persona         @relation(fields: [personaId], references: [id])
+  viewCount       Int             @default(0)
+  isPublished     Boolean         @default(true)
+  publishedAt     DateTime        @default(now())
+  indexedGoogle   Boolean         @default(false) // Google Indexing API durumu
+  
+  favorites       FavoriteNews[]
+  readingLogs     ReadingHistory[]
+  comments        Comment[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([category])
+  @@index([publishedAt])
+}
+
+// 4. OKUMA GEÇMİŞİ & ETKİLEŞİM
+model ReadingHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsId    String
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  readAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model FavoriteNews {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsId    String
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  savedAt   DateTime @default(now())
+
+  @@unique([userId, newsId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsId    String
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([newsId])
+}
+
+// 5. SİSTEM AYARLARI (CANLI MODEL SEÇİCİ & QSTASH)
+model SystemSetting {
+  id              String   @id @default("default")
+  activeTextModel String   @default("gemini-3.7-flash") // Canlı seçilen yazar modeli (gemini-3.7-flash, gemini-3.1-pro vb.)
+  activeImageModel String  @default("imagen-3.0-generate-002") // Canlı seçilen görsel modeli
+  activeTtsVoice  String   @default("tr-TR-Standard-A") // Doğal Türkçe Spiker
+  dailyTarget     Int      @default(10) // Günlük hedef haber sayısı
+  isAutoPublish   Boolean  @default(true)
+  updatedAt       DateTime @updatedAt
+}
+
+// 6. RSS & TREND KAYNAKLARI
+model ContentSource {
+  id        String   @id @default(cuid())
+  name      String   // Örn: "Google Trends Türkiye", "Anadolu Ajansı RSS", "Bloomberg RSS"
+  type      String   // "GOOGLE_TRENDS" | "RSS"
+  url       String?
+  category  String   @default("GUNDEM")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// 7. OTOMASYON GÖREV GÜNLÜĞÜ (AUDIT LOGS)
+model JobLog {
+  id        String   @id @default(cuid())
+  step      String   // "TREND_DISCOVERY", "GATEKEEPER", "WRITING", "IMAGEN", "TTS", "PUBLISH", "INDEXING"
+  status    String   // "SUCCESS", "FAILED", "SKIPPED", "RUNNING"
+  message   String   @db.Text
+  details   Json?
+  createdAt DateTime @default(now())
+}
