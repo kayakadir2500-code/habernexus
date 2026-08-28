@@ -1,7 +1,9 @@
 ﻿"use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { 
   Menu, 
   X, 
@@ -27,6 +29,7 @@ const CATEGORIES = [
 export function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { data: session } = useSession();
 
   return (
     <>
@@ -96,7 +99,7 @@ export function PublicHeader() {
               ))}
             </nav>
 
-            {/* Sağ Aksiyonlar: Arama & Giriş */}
+            {/* Sağ Aksiyonlar: Arama & Profil / Giriş */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSearchOpen(true)}
@@ -110,10 +113,34 @@ export function PublicHeader() {
                 href="/profil"
                 className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-sm font-medium transition-all shadow-sm"
               >
-                <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
-                  G
-                </div>
-                <span className="hidden sm:inline">Giriş Yap</span>
+                {session?.user ? (
+                  <>
+                    {session.user.image ? (
+                      <div className="relative w-6 h-6 rounded-full overflow-hidden border border-sky-400">
+                        <Image
+                          src={session.user.image}
+                          alt={session.user.name || "Kullanıcı"}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
+                        {session.user.name?.[0]?.toUpperCase() || "U"}
+                      </div>
+                    )}
+                    <span className="hidden sm:inline font-semibold text-sky-300">
+                      {session.user.name?.split(" ")[0]}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
+                      G
+                    </div>
+                    <span className="hidden sm:inline">Giriş Yap</span>
+                  </>
+                )}
               </Link>
             </div>
           </div>

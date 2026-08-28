@@ -1,9 +1,4 @@
-﻿/**
- * Ultra Gerçekçi Basın Fotoğrafı Stüdyosu (Imagen 3 / Imagen 4)
- * Google Imagen modelleri ile 16:9 haber görseli üretir ve optimize eder.
- */
-
-import { optimizeAndStoreImage } from "@/lib/image/optimizer";
+﻿import { optimizeAndStoreImage } from "../image/optimizer";
 
 export async function generateEditorialNewsImage(params: {
   prompt: string;
@@ -18,7 +13,6 @@ export async function generateEditorialNewsImage(params: {
     return getRandomFallbackNewsImage();
   }
 
-  // Güvenlik & Profesyonel Fotoğrafçılık filtreleri ekle
   const fullPrompt = `${params.prompt}, high resolution news photojournalism, authentic press photography, clear details, 8k, natural light --no text, no watermark, no CGI, no cartoon`;
 
   try {

@@ -1,9 +1,4 @@
-﻿/**
- * Akıllı Persona & Yazar Eşleştirici
- * Haberin konusunu ve kategorisini analiz ederek veritabanındaki en uygun AI Personayı seçer.
- */
-
-import { db } from "@/lib/db";
+﻿import { db } from "../db";
 
 export async function matchBestPersona(category: string): Promise<{
   id: string;
@@ -13,7 +8,6 @@ export async function matchBestPersona(category: string): Promise<{
   tone: string;
 }> {
   try {
-    // 1. İlgili kategoride uzmanlığı olan bir persona ara
     const matchingPersonas = await db.persona.findMany({
       where: {
         categories: {
@@ -23,18 +17,15 @@ export async function matchBestPersona(category: string): Promise<{
     });
 
     if (matchingPersonas.length > 0) {
-      // Rastgele birini veya en az haber yazanı seç
       const selected = matchingPersonas[Math.floor(Math.random() * matchingPersonas.length)];
       return selected;
     }
 
-    // 2. Kategoriye özel persona bulunamadıysa ilk personayı al
     const firstPersona = await db.persona.findFirst();
     if (firstPersona) {
       return firstPersona;
     }
 
-    // 3. Veritabanı boşsa varsayılan döndür
     return {
       id: "default-editor",
       name: "HaberNexus Editör Masası",

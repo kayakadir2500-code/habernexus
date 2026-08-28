@@ -1,10 +1,5 @@
-﻿/**
- * Gündem & Trend Toplama Motoru
- * Google Trends ve RSS beslemelerini ayrıştırır, yinelenenleri eler ve ham konuları çıkarır.
- */
-
-import Parser from "rss-parser";
-import { db } from "@/lib/db";
+﻿import Parser from "rss-parser";
+import { db } from "../db";
 
 const parser = new Parser({
   customFields: {
@@ -32,7 +27,6 @@ export async function fetchAllActiveTrends(): Promise<TrendCandidate[]> {
     });
 
     if (sources.length === 0) {
-      // Varsayılan kaynaklar
       return [
         {
           rawTitle: "Yapay Zeka ve Otonom Teknolojilerde Yeni Dönem",
@@ -58,12 +52,11 @@ export async function fetchAllActiveTrends(): Promise<TrendCandidate[]> {
 
       try {
         const feed = await parser.parseURL(src.url);
-        const items = feed.items.slice(0, 10); // Her kaynaktan en güncel 10 konu
+        const items = feed.items.slice(0, 10);
 
         for (const item of items) {
           if (!item.title) continue;
 
-          // Veritabanında yakın zamanda benzer başlık var mı kontrol et (Deduplication)
           const isDuplicate = await checkDatabaseDuplicate(item.title);
           if (!isDuplicate) {
             candidates.push({
@@ -93,7 +86,6 @@ async function checkDatabaseDuplicate(title: string): Promise<boolean> {
     const cleanWords = title.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
     if (cleanWords.length === 0) return false;
 
-    // Başlığın anahtar kelimelerinden biri son 7 günde yayınlanan haberlerde var mı?
     const existing = await db.news.findFirst({
       where: {
         title: {

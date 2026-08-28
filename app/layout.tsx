@@ -1,37 +1,39 @@
 ﻿import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "HaberNexus - Güncel ve Doğrulanmış Son Dakika Haber Portalı",
-  description:
-    "Türkiye ve dünya gündeminden en sıcak son dakika gelişmeleri, 7/24 canlı teyitli tarafsız haberler, derinlemesine analizler ve özel dosyalar HaberNexus'ta.",
-  keywords: ["haber", "son dakika", "gündem", "teknoloji", "ekonomi", "dünya", "spor", "otomotiv", "habernexus"],
-  authors: [{ name: "HaberNexus Haber Merkezi" }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  title: {
+    default: "HaberNexus - Güncel ve Doğrulanmış Dijital Haber Ajansı",
+    template: "%s | HaberNexus",
+  },
+  description:
+    "Türkiye ve dünya gündeminden en son haberler, tarafsız analizler ve bağımsız gazetecilik.",
+  keywords: ["haber", "gündem", "teknoloji", "ekonomi", "dünya", "spor", "son dakika haberleri"],
   openGraph: {
-    title: "HaberNexus - Güncel ve Doğrulanmış Son Dakika Haber Portalı",
-    description: "7/24 canlı teyitli, ilkeli ve bağımsız gazetecilik.",
-    url: "https://habernexus.com",
+    title: "HaberNexus - Güncel ve Doğrulanmış Dijital Haber Ajansı",
+    description: "7/24 kesintisiz, teyitli ve bağımsız dijital haber portalı.",
     siteName: "HaberNexus",
     locale: "tr_TR",
     type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "HaberNexus - Güncel ve Doğrulanmış Son Dakika Haber Portalı",
-    description: "7/24 canlı teyitli, ilkeli ve bağımsız gazetecilik.",
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="tr" className="dark">
-      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-sky-500 selection:text-white">
-        {children}
+      <body className={`${inter.className} bg-slate-950 text-slate-100 min-h-screen antialiased`}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

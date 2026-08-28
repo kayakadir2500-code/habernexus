@@ -3,14 +3,14 @@
  * Keşif -> Gatekeeper -> Grounding Writer -> Persona Atama -> Imagen Görsel -> TTS Ses -> DB Kaydı -> Google Indexing Ping
  */
 
-import { db } from "@/lib/db";
-import { fetchAllActiveTrends } from "@/lib/trends/fetcher";
-import { evaluateNewsTopic } from "@/lib/ai/gatekeeper";
-import { writeFullArticleWithGrounding } from "@/lib/ai/writer";
-import { matchBestPersona } from "@/lib/ai/personaMatcher";
-import { generateEditorialNewsImage } from "@/lib/ai/imageStudio";
-import { generateArticleAudio } from "@/lib/tts/audioStudio";
-import { pingGoogleIndexing } from "@/lib/seo/indexing";
+import { db } from "../db";
+import { fetchAllActiveTrends } from "../trends/fetcher";
+import { evaluateNewsTopic } from "./gatekeeper";
+import { writeFullArticleWithGrounding } from "./writer";
+import { matchBestPersona } from "./personaMatcher";
+import { generateEditorialNewsImage } from "./imageStudio";
+import { generateArticleAudio } from "../tts/audioStudio";
+import { pingGoogleIndexing } from "../seo/indexing";
 
 export async function runAutonomousNewsPipeline(manualTopic?: string, manualCategory?: string) {
   const startTime = Date.now();
